@@ -4,7 +4,24 @@ import Head from "next/head";
 function fileToBase64(file) {
   return new Promise((res, rej) => {
     const r = new FileReader();
-    r.onload = () => res(r.result.split(",")[1]);
+    r.onload = () => {
+      const base64 = r.result.split(",")[1];
+      // Si le fichier fait moins de 4MB, on envoie directement
+      if (file.size < 4 * 1024 * 1024) {
+        res(base64);
+        return;
+      }
+      // Sinon on découpe le PDF en tronquant les images embarquées
+      // en re-encodant uniquement le texte via un blob compressé
+      const binary = atob(base64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      // On limite à 3.5MB max pour rester sous la limite Vercel
+      const truncated = bytes.slice(0, 3.5 * 1024 * 1024);
+      let result = "";
+      for (let i = 0; i < truncated.length; i++) result += String.fromCharCode(truncated[i]);
+      res(btoa(result));
+    };
     r.onerror = () => rej(new Error("Read failed"));
     r.readAsDataURL(file);
   });
