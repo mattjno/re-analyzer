@@ -2,12 +2,17 @@ import { useState, useRef, useCallback, useEffect } from "react";
 import Head from "next/head";
 
 async function uploadToBlob(file) {
-  const { upload } = await import('@vercel/blob/client');
-  const blob = await upload(file.name, file, {
-    access: 'public',
-    handleUploadUrl: '/api/upload',
+  const resp = await fetch("/api/upload", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/pdf",
+      "x-filename": file.name,
+    },
+    body: file,
   });
-  return blob.url;
+  if (!resp.ok) throw new Error(`Upload échoué (${resp.status})`);
+  const { url } = await resp.json();
+  return url;
 }
 
 async function extractFromIM(blobUrl, filename) {
