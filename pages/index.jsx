@@ -1,37 +1,25 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import Head from "next/head";
 
-function fileToBase64(file) {
-  return new Promise((res, rej) => {
-    const r = new FileReader();
-    r.onload = () => {
-      const base64 = r.result.split(",")[1];
-      // Si le fichier fait moins de 4MB, on envoie directement
-      if (file.size < 4 * 1024 * 1024) {
-        res(base64);
-        return;
-      }
-      // Sinon on découpe le PDF en tronquant les images embarquées
-      // en re-encodant uniquement le texte via un blob compressé
-      const binary = atob(base64);
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-      // On limite à 3.5MB max pour rester sous la limite Vercel
-      const truncated = bytes.slice(0, 3.5 * 1024 * 1024);
-      let result = "";
-      for (let i = 0; i < truncated.length; i++) result += String.fromCharCode(truncated[i]);
-      res(btoa(result));
-    };
-    r.onerror = () => rej(new Error("Read failed"));
-    r.readAsDataURL(file);
+async function uploadToBlob(file) {
+  const resp = await fetch("/api/upload", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/pdf",
+      "x-filename": file.name,
+    },
+    body: file,
   });
+  if (!resp.ok) throw new Error(`Upload échoué (${resp.status})`);
+  const { url } = await resp.json();
+  return url;
 }
 
-async function extractFromIM(base64Data, filename) {
+async function extractFromIM(blobUrl, filename) {
   const resp = await fetch("/api/extract", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ base64Data, filename }),
+    body: JSON.stringify({ blobUrl, filename }),
   });
   if (!resp.ok) throw new Error(`Extraction échouée (${resp.status})`);
   return resp.json();
