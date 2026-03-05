@@ -19,13 +19,24 @@ async function enrichWithWebSearch(imData) {
 }
 
 // ─── Design tokens ────────────────────────────────────────────────────────────
+// Header/banner = dark navy. Content zone (below sky bar) = light theme.
 const C = {
+  // Dark header (unchanged)
   navy:"#0B1437", navyMid:"#132050", navyLight:"#1A2D65",
   sky:"#4A90D9", skyLight:"#EBF4FF", skyMid:"#2E6BAD",
   red:"#E8262A", redMid:"#C41E22", redLight:"rgba(232,38,42,0.15)",
   white:"#FFFFFF", grey100:"#F0F4F8", grey200:"#E4E9F2",
   grey400:"#8492A6", grey600:"#475569",
   green:"#10B981", amber:"#F59E0B", blue:"#3B82F6",
+  // Light content zone
+  pageBg:"#E8F0FA",
+  cardBg:"#FFFFFF",
+  cardBorder:"#D0DCF0",
+  cardBg2:"#F4F7FD",
+  textPrimary:"#0B1437",
+  textSecondary:"#3D5080",
+  textMuted:"#8492A6",
+  rowAlt:"#F0F5FC",
 };
 
 // ─── Transparent scoring ──────────────────────────────────────────────────────
@@ -115,28 +126,28 @@ function MapComponent({ adresse, ville, pays, classeActif }) {
     : [{c:C.green,l:"300m – 5min"},{c:C.amber,l:"600m – 8min"},{c:C.blue,l:"1,2km – 15min TC"}];
 
   return (
-    <div style={{borderRadius:16,overflow:"hidden",border:`1px solid ${C.navyLight}`,background:C.navyMid}}>
+    <div style={{borderRadius:16,overflow:"hidden",border:`1px solid ${C.navyLight}`,background:C.cardBg,border:`1px solid ${C.cardBorder}`,boxShadow:"0 2px 8px rgba(11,20,55,.08)"}}>
       {loading ? (
-        <div style={{height:440,display:"flex",alignItems:"center",justifyContent:"center",color:C.grey400,fontSize:14}}>Géolocalisation…</div>
+        <div style={{height:440,display:"flex",alignItems:"center",justifyContent:"center",color:C.textMuted,fontSize:14}}>Géolocalisation…</div>
       ) : !coords ? (
         <div style={{height:440,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:12}}>
           <span style={{color:C.grey400}}>Adresse non géolocalisée</span>
-          <a href={gmUrl} target="_blank" rel="noopener noreferrer" style={{color:C.red,fontSize:13,textDecoration:"none",border:`1px solid ${C.redLight}`,padding:"6px 14px",borderRadius:8}}>Ouvrir dans Google Maps →</a>
+          <a href={gmUrl} target="_blank" rel="noopener noreferrer" style={{color:C.red,fontSize:13,textDecoration:"none",border:`1px solid ${C.red}30`,padding:"6px 14px",borderRadius:8,background:"#FFF5F5"}}>Ouvrir dans Google Maps →</a>
         </div>
       ) : (
         <>
           <div style={{position:"relative"}}>
             <div ref={mapRef} style={{width:"100%",height:440}} />
-            <button onClick={toggleLayer} style={{position:"absolute",top:10,right:10,zIndex:999,padding:"7px 14px",borderRadius:8,fontSize:12,fontWeight:700,border:"none",cursor:"pointer",background:satellite?C.amber:C.navyMid,color:satellite?C.navy:C.white,boxShadow:"0 2px 8px rgba(0,0,0,.4)"}}>
+            <button onClick={toggleLayer} style={{position:"absolute",top:10,right:10,zIndex:999,padding:"7px 14px",borderRadius:8,fontSize:12,fontWeight:700,border:"none",cursor:"pointer",background:satellite?C.amber:C.white,color:satellite?C.navy:C.textPrimary,boxShadow:"0 2px 8px rgba(0,0,0,.4)"}}>
               {satellite ? "🗺 Plan" : "🛰 Satellite"}
             </button>
           </div>
-          <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8}}>
+          <div style={{padding:"10px 16px",display:"flex",alignItems:"center",justifyContent:"space-between",flexWrap:"wrap",gap:8,background:C.cardBg,borderTop:`1px solid ${C.cardBorder}`}}>
             <div style={{display:"flex",gap:14,flexWrap:"wrap"}}>
               {legendItems.map((li,i)=>(
                 <div key={i} style={{display:"flex",alignItems:"center",gap:5}}>
                   <div style={{width:9,height:9,borderRadius:"50%",background:li.c,opacity:.7}}/>
-                  <span style={{fontSize:11,color:C.grey400}}>{li.l}</span>
+                  <span style={{fontSize:11,color:C.textMuted}}>{li.l}</span>
                 </div>
               ))}
             </div>
@@ -153,25 +164,25 @@ function MapComponent({ adresse, ville, pays, classeActif }) {
 
 // ─── Lease Table ──────────────────────────────────────────────────────────────
 function LeaseTable({ locataires }) {
-  if (!locataires?.length) return <div style={{textAlign:"center",color:C.grey400,padding:"32px 0"}}>Aucun locataire</div>;
+  if (!locataires?.length) return <div style={{textAlign:"center",color:C.textMuted,padding:"32px 0"}}>Aucun locataire</div>;
   const cols = [
     {k:"nom",l:"Locataire",w:150},{k:"surface",l:"Surface",w:90},{k:"loyer_annuel",l:"Loyer/an",w:110},
     {k:"loyer_m2",l:"€/m²/an",w:90},{k:"date_debut_bail",l:"Début",w:80},{k:"date_break",l:"Break",w:80},
     {k:"date_fin_bail",l:"Fin bail",w:80},{k:"walb",l:"WALB",w:75},{k:"walt",l:"WALT",w:75},{k:"type_bail",l:"Type bail",w:110},
   ];
   return (
-    <div style={{overflowX:"auto",borderRadius:12,border:`1px solid ${C.navyLight}`}}>
+    <div style={{overflowX:"auto",borderRadius:12,border:`1px solid ${C.cardBorder}`}}>
       <table style={{width:"100%",borderCollapse:"collapse",fontSize:13,minWidth:960}}>
         <thead>
-          <tr style={{background:C.navyLight}}>
-            {cols.map(c=><th key={c.k} style={{padding:"10px 14px",textAlign:"left",color:C.grey400,fontWeight:600,fontSize:11,letterSpacing:".05em",whiteSpace:"nowrap",minWidth:c.w}}>{c.l.toUpperCase()}</th>)}
+          <tr style={{background:C.navy}}>
+            {cols.map(c=><th key={c.k} style={{padding:"10px 14px",textAlign:"left",color:"#B0C0E0",fontWeight:600,fontSize:11,letterSpacing:".05em",whiteSpace:"nowrap",minWidth:c.w}}>{c.l.toUpperCase()}</th>)}
           </tr>
         </thead>
         <tbody>
           {locataires.map((loc,i)=>(
-            <tr key={i} style={{background:i%2===0?C.navyMid:"rgba(19,32,80,.4)"}}>
+            <tr key={i} style={{background:i%2===0?C.cardBg:C.rowAlt}}>
               {cols.map(c=>(
-                <td key={c.k} style={{padding:"10px 14px",color:c.k==="nom"?C.white:c.k==="walb"||c.k==="walt"?C.amber:C.grey200,fontWeight:c.k==="nom"?600:400,whiteSpace:"nowrap",borderBottom:`1px solid rgba(26,45,101,.5)`}}>
+                <td key={c.k} style={{padding:"10px 14px",color:c.k==="nom"?C.textPrimary:c.k==="walb"||c.k==="walt"?C.amber:C.textSecondary,fontWeight:c.k==="nom"?600:400,whiteSpace:"nowrap",borderBottom:`1px solid ${C.cardBorder}`}}>
                   {loc[c.k]||"N/D"}
                 </td>
               ))}
@@ -205,14 +216,14 @@ function ScoringPanel({ enriched }) {
   return (
     <div style={{display:"flex",flexDirection:"column",gap:16}}>
       {/* Score card */}
-      <div style={{borderRadius:16,border:`1px solid ${C.navyLight}`,background:C.navyMid,overflow:"hidden"}}>
-        <div style={{background:`linear-gradient(135deg,${C.navyLight},${C.navyMid})`,padding:"24px 28px",display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:20}}>
+      <div style={{borderRadius:16,border:`1px solid ${C.cardBorder}`,background:C.cardBg,overflow:"hidden",boxShadow:"0 2px 8px rgba(11,20,55,.08)"}}>
+        <div style={{background:`linear-gradient(135deg,${C.pageBg} 0%,${C.cardBg} 100%)`,padding:"24px 28px",display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:20}}>
           {/* Big score */}
           <div>
-            <div style={{fontSize:11,fontWeight:700,letterSpacing:".08em",color:C.grey400,marginBottom:8}}>NOTE GLOBALE</div>
+            <div style={{fontSize:11,fontWeight:700,letterSpacing:".08em",color:C.textMuted,marginBottom:8}}>NOTE GLOBALE</div>
             <div style={{display:"flex",alignItems:"baseline",gap:6}}>
-              <span style={{fontSize:72,fontWeight:900,color:valid?noteColor:C.grey600,lineHeight:1}}>{valid?total:"—"}</span>
-              <span style={{fontSize:24,color:C.grey600}}>/10</span>
+              <span style={{fontSize:72,fontWeight:900,color:valid?noteColor:C.textMuted,lineHeight:1}}>{valid?total:"—"}</span>
+              <span style={{fontSize:24,color:C.textMuted}}>/10</span>
             </div>
             {rec&&<span style={{marginTop:10,display:"inline-block",padding:"5px 16px",borderRadius:20,fontSize:13,fontWeight:700,background:`${recColor}20`,border:`1px solid ${recColor}50`,color:recColor}}>{rec}</span>}
           </div>
@@ -223,8 +234,8 @@ function ScoringPanel({ enriched }) {
               const barColor = score>=7?C.green:score>=5?C.amber:C.red;
               return (
                 <div key={k} style={{display:"flex",alignItems:"center",gap:10}}>
-                  <div style={{minWidth:160,fontSize:13,color:C.grey200,textAlign:"right"}}>{w.label} <span style={{color:C.grey600,fontSize:11}}>({w.pct}%)</span></div>
-                  <div style={{flex:1,height:7,borderRadius:4,background:C.navyLight,overflow:"hidden"}}>
+                  <div style={{minWidth:160,fontSize:13,color:C.textSecondary,textAlign:"right"}}>{w.label} <span style={{color:C.textMuted,fontSize:11}}>({w.pct}%)</span></div>
+                  <div style={{flex:1,height:7,borderRadius:4,background:C.cardBorder,overflow:"hidden"}}>
                     <div style={{width:`${(score/10)*100}%`,height:"100%",background:barColor,borderRadius:4,transition:"width .6s ease"}}/>
                   </div>
                   <span style={{fontSize:13,fontWeight:700,color:barColor,minWidth:30}}>{score.toFixed(1)}</span>
@@ -235,7 +246,7 @@ function ScoringPanel({ enriched }) {
         </div>
 
         {/* Toggle methodology */}
-        <button onClick={()=>setOpen(o=>!o)} style={{width:"100%",padding:"12px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"none",border:"none",borderTop:`1px solid ${C.navyLight}`,cursor:"pointer",color:C.grey400,fontSize:12}}>
+        <button onClick={()=>setOpen(o=>!o)} style={{width:"100%",padding:"12px 28px",display:"flex",alignItems:"center",justifyContent:"space-between",background:"none",border:"none",borderTop:`1px solid ${C.cardBorder}`,cursor:"pointer",color:C.textSecondary,fontSize:12}}>
           <span>⚙️ Méthodologie complète & personnalisation des pondérations</span>
           <span style={{transform:open?"rotate(180deg)":"none",transition:".2s",display:"inline-block"}}>▼</span>
         </button>
@@ -245,25 +256,25 @@ function ScoringPanel({ enriched }) {
       {open && (
         <div style={{display:"flex",flexDirection:"column",gap:14}}>
           {/* How each score is calculated */}
-          <div style={{borderRadius:14,border:`1px solid ${C.navyLight}`,background:C.navyMid,padding:"18px 20px"}}>
-            <div style={{fontSize:11,fontWeight:700,letterSpacing:".07em",color:C.grey400,marginBottom:14}}>📐 COMMENT CHAQUE SCORE EST CALCULÉ</div>
-            <div style={{padding:"10px 14px",borderRadius:10,background:`${C.amber}10`,border:`1px solid ${C.amber}20`,fontSize:12,color:"#FCD34D",marginBottom:14}}>
+          <div style={{borderRadius:14,border:`1px solid ${C.cardBorder}`,background:C.cardBg,padding:"18px 20px",boxShadow:"0 1px 4px rgba(11,20,55,.06)"}}>
+            <div style={{fontSize:11,fontWeight:700,letterSpacing:".07em",color:C.textSecondary,marginBottom:14}}>📐 COMMENT CHAQUE SCORE EST CALCULÉ</div>
+            <div style={{padding:"10px 14px",borderRadius:10,background:"#FFFBEB",border:`1px solid ${C.amber}30`,fontSize:12,color:"#92400E",marginBottom:14}}>
               La note finale = somme des 5 scores × leur pondération. Les données proviennent de l'extraction IM et des recherches web. Aucun calcul caché.
             </div>
             <table style={{width:"100%",borderCollapse:"collapse",fontSize:12}}>
               <thead>
-                <tr style={{background:C.navyLight}}>
+                <tr style={{background:C.navy}}>
                   {["Composante","Source de données","Logique de scoring"].map(h=>(
-                    <th key={h} style={{padding:"8px 12px",textAlign:"left",color:C.grey400,fontWeight:600,fontSize:11,letterSpacing:".04em"}}>{h.toUpperCase()}</th>
+                    <th key={h} style={{padding:"8px 12px",textAlign:"left",color:"#B0C0E0",fontWeight:600,fontSize:11,letterSpacing:".04em"}}>{h.toUpperCase()}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {howItWorks.map((row,i)=>(
-                  <tr key={i} style={{background:i%2===0?C.navy:"transparent"}}>
-                    <td style={{padding:"10px 12px",color:C.white,fontWeight:600,fontSize:12}}>{row.comp}</td>
-                    <td style={{padding:"10px 12px",color:C.grey200,fontSize:12}}>{row.src}</td>
-                    <td style={{padding:"10px 12px",color:C.grey400,fontSize:11,fontStyle:"italic"}}>{row.logic}</td>
+                  <tr key={i} style={{background:i%2===0?C.cardBg2:C.cardBg}}>
+                    <td style={{padding:"10px 12px",color:C.textPrimary,fontWeight:600,fontSize:12}}>{row.comp}</td>
+                    <td style={{padding:"10px 12px",color:C.textSecondary,fontSize:12}}>{row.src}</td>
+                    <td style={{padding:"10px 12px",color:C.textMuted,fontSize:11,fontStyle:"italic"}}>{row.logic}</td>
                   </tr>
                 ))}
               </tbody>
@@ -271,21 +282,21 @@ function ScoringPanel({ enriched }) {
           </div>
 
           {/* Editable weights */}
-          <div style={{borderRadius:14,border:`1px solid ${C.navyLight}`,background:C.navyMid,padding:"18px 20px"}}>
-            <div style={{fontSize:11,fontWeight:700,letterSpacing:".07em",color:C.grey400,marginBottom:14}}>🎛 AJUSTER LES PONDÉRATIONS (total = 100%)</div>
+          <div style={{borderRadius:14,border:`1px solid ${C.cardBorder}`,background:C.cardBg,padding:"18px 20px",boxShadow:"0 1px 4px rgba(11,20,55,.06)"}}>
+            <div style={{fontSize:11,fontWeight:700,letterSpacing:".07em",color:C.textSecondary,marginBottom:14}}>🎛 AJUSTER LES PONDÉRATIONS (total = 100%)</div>
             <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:10}}>
               {Object.entries(weights).map(([k,w])=>(
-                <div key={k} style={{background:C.navy,borderRadius:10,padding:"14px 16px"}}>
+                <div key={k} style={{background:C.cardBg2,borderRadius:10,padding:"14px 16px",border:`1px solid ${C.cardBorder}`}}>
                   <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
-                    <span style={{fontSize:13,fontWeight:600,color:C.white}}>{w.label}</span>
+                    <span style={{fontSize:13,fontWeight:600,color:C.textPrimary}}>{w.label}</span>
                     <div style={{display:"flex",alignItems:"center",gap:4}}>
                       <input type="number" min="0" max="100" value={w.pct}
                         onChange={e=>setWeights(prev=>({...prev,[k]:{...prev[k],pct:Math.max(0,Math.min(100,parseInt(e.target.value)||0))}}))}
-                        style={{width:54,padding:"4px 6px",borderRadius:6,border:`1px solid ${C.navyLight}`,background:C.navyMid,color:C.white,fontSize:13,fontWeight:700,textAlign:"center"}}/>
-                      <span style={{fontSize:12,color:C.grey600}}>%</span>
+                        style={{width:54,padding:"4px 6px",borderRadius:6,border:`1px solid ${C.cardBorder}`,background:C.cardBg,color:C.textPrimary,fontSize:13,fontWeight:700,textAlign:"center"}}/>
+                      <span style={{fontSize:12,color:C.textMuted}}>%</span>
                     </div>
                   </div>
-                  <div style={{fontSize:11,color:C.grey600,marginBottom:8}}>{w.desc}</div>
+                  <div style={{fontSize:11,color:C.textMuted,marginBottom:8}}>{w.desc}</div>
                   <div style={{fontSize:12,fontWeight:600,color:(sub[k]||5)>=7?C.green:(sub[k]||5)>=5?C.amber:C.red}}>
                     Score actuel : {(sub[k]||5).toFixed(1)}/10
                   </div>
@@ -309,11 +320,11 @@ function TenantCard({ loc, enrichedData }) {
   const hc = el?.sante_financiere==="solide"?C.green:el?.sante_financiere==="fragile"?C.red:C.amber;
 
   return (
-    <div style={{borderRadius:14,border:`1px solid ${C.navyLight}`,background:C.navyMid,padding:20,marginBottom:12}}>
+    <div style={{borderRadius:14,border:`1px solid ${C.cardBorder}`,background:C.cardBg,padding:20,marginBottom:12,boxShadow:"0 1px 4px rgba(11,20,55,.06)"}}>
       <div style={{display:"flex",alignItems:"flex-start",justifyContent:"space-between",flexWrap:"wrap",gap:12,marginBottom:16}}>
         <div>
-          <div style={{fontSize:16,fontWeight:700,color:C.white}}>{loc.nom}</div>
-          <div style={{fontSize:12,color:C.grey400,marginTop:2}}>{loc.secteur}</div>
+          <div style={{fontSize:16,fontWeight:700,color:C.textPrimary}}>{loc.nom}</div>
+          <div style={{fontSize:12,color:C.textMuted,marginTop:2}}>{loc.secteur}</div>
         </div>
         <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
           {el?.sante_financiere&&<span style={{padding:"4px 12px",borderRadius:20,fontSize:12,fontWeight:600,background:`${hc}20`,border:`1px solid ${hc}40`,color:hc}}>● {el.sante_financiere.charAt(0).toUpperCase()+el.sante_financiere.slice(1)}</span>}
@@ -323,34 +334,34 @@ function TenantCard({ loc, enrichedData }) {
 
       <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(110px,1fr))",gap:8,marginBottom:16}}>
         {[["Surface",loc.surface],["Loyer/an",loc.loyer_annuel],["€/m²/an",loc.loyer_m2],["WALB",loc.walb]].map(([l,v])=>(
-          <div key={l} style={{background:C.navy,borderRadius:10,padding:"8px 12px"}}>
-            <div style={{fontSize:11,color:C.grey400}}>{l}</div>
-            <div style={{fontSize:13,fontWeight:600,color:C.white,marginTop:2}}>{v||"N/D"}</div>
+          <div key={l} style={{background:C.cardBg2,borderRadius:10,padding:"8px 12px",border:`1px solid ${C.cardBorder}`}}>
+            <div style={{fontSize:11,color:C.textMuted}}>{l}</div>
+            <div style={{fontSize:13,fontWeight:600,color:C.textPrimary,marginTop:2}}>{v||"N/D"}</div>
           </div>
         ))}
       </div>
 
       {el&&(
         <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-          <div style={{background:C.navy,borderRadius:10,padding:14}}>
-            <div style={{fontSize:11,fontWeight:700,color:C.grey400,letterSpacing:".05em",marginBottom:10}}>DONNÉES FINANCIÈRES</div>
+          <div style={{background:C.cardBg2,borderRadius:10,padding:14,border:`1px solid ${C.cardBorder}`}}>
+            <div style={{fontSize:11,fontWeight:700,color:C.textSecondary,letterSpacing:".05em",marginBottom:10}}>DONNÉES FINANCIÈRES</div>
             {[["CA",el.chiffre_affaires],["Résultat net",el.resultat_net],["Effectifs",el.effectifs],["Notation",el.notation]].map(([l,v])=>v&&v!=="N/D"&&(
               <div key={l} style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-                <span style={{fontSize:12,color:C.grey400}}>{l}</span>
-                <span style={{fontSize:12,fontWeight:600,color:C.white}}>{v}</span>
+                <span style={{fontSize:12,color:C.textMuted}}>{l}</span>
+                <span style={{fontSize:12,fontWeight:600,color:C.textPrimary}}>{v}</span>
               </div>
             ))}
-            {el.actualites&&<div style={{marginTop:10,padding:8,background:`${C.amber}10`,borderRadius:8,border:`1px solid ${C.amber}20`}}>
+            {el.actualites&&<div style={{marginTop:10,padding:8,background:"#FFFBEB",borderRadius:8,border:`1px solid ${C.amber}30`}}>
               <div style={{fontSize:11,color:C.amber,marginBottom:4}}>📰 Actualités</div>
-              <div style={{fontSize:12,color:C.grey200}}>{el.actualites}</div>
+              <div style={{fontSize:12,color:C.textSecondary}}>{el.actualites}</div>
             </div>}
           </div>
-          <div style={{background:C.navy,borderRadius:10,padding:14}}>
-            <div style={{fontSize:11,fontWeight:700,color:C.grey400,letterSpacing:".05em",marginBottom:8}}>ANALYSE & SOURCES</div>
-            {el.commentaire&&<p style={{fontSize:12,color:C.grey200,lineHeight:1.6,marginBottom:12}}>{el.commentaire}</p>}
+          <div style={{background:C.cardBg2,borderRadius:10,padding:14,border:`1px solid ${C.cardBorder}`}}>
+            <div style={{fontSize:11,fontWeight:700,color:C.textSecondary,letterSpacing:".05em",marginBottom:8}}>ANALYSE & SOURCES</div>
+            {el.commentaire&&<p style={{fontSize:12,color:C.textSecondary,lineHeight:1.6,marginBottom:12}}>{el.commentaire}</p>}
             <div style={{display:"flex",flexDirection:"column",gap:6}}>
               {(el.sources||[]).map((s,i)=>(
-                <a key={i} href={s.url||"#"} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:C.red,textDecoration:"none",padding:"5px 8px",borderRadius:7,border:`1px solid ${C.redLight}`,background:C.redLight}}>
+                <a key={i} href={s.url||"#"} target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:6,fontSize:12,color:C.red,textDecoration:"none",padding:"5px 8px",borderRadius:7,border:`1px solid ${C.red}25`,background:"#FFF5F5"}}>
                   <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                   {s.label||s}
                 </a>
@@ -372,30 +383,30 @@ function AssetClassPanel({ classeActif, analysis }) {
     <div style={{display:"flex",flexDirection:"column",gap:12}}>
       {!isLog&&!isCom&&analysis.transports_detail&&(
         <Card title="Accessibilité TC" icon="🚆">
-          {analysis.transports_detail.lignes_proches?.map((l,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.grey200,marginBottom:6}}>🚉 {l}</div>)}
-          {analysis.transports_detail.isochrone_15min_tc&&<div style={{marginTop:8,padding:10,borderRadius:10,background:`${C.blue}15`,border:`1px solid ${C.blue}30`,fontSize:12,color:"#93C5FD"}}>🕐 Zone 15min : {analysis.transports_detail.isochrone_15min_tc}</div>}
+          {analysis.transports_detail.lignes_proches?.map((l,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.textSecondary,marginBottom:6}}>🚉 {l}</div>)}
+          {analysis.transports_detail.isochrone_15min_tc&&<div style={{marginTop:8,padding:10,borderRadius:10,background:`${C.blue}10`,border:`1px solid ${C.blue}30`,fontSize:12,color:C.blue}}>🕐 Zone 15min : {analysis.transports_detail.isochrone_15min_tc}</div>}
         </Card>
       )}
       {isCom&&analysis.zone_chalandise&&(
         <Card title="Zone de Chalandise" icon="🏪">
           <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8,marginBottom:12}}>
             {[["Pop. 5min",analysis.zone_chalandise.population_5min],["Pop. 10min",analysis.zone_chalandise.population_10min],["Trafic piéton",analysis.zone_chalandise.trafic_pietonne]].filter(([,v])=>v&&v!=="N/D").map(([l,v])=>(
-              <div key={l} style={{background:C.navy,borderRadius:9,padding:"9px 12px"}}><div style={{fontSize:11,color:C.grey400}}>{l}</div><div style={{fontSize:13,fontWeight:700,color:C.white,marginTop:3}}>{v}</div></div>
+              <div key={l} style={{background:C.cardBg2,borderRadius:9,padding:"9px 12px",border:`1px solid ${C.cardBorder}`}}><div style={{fontSize:11,color:C.textMuted}}>{l}</div><div style={{fontSize:13,fontWeight:700,color:C.textPrimary,marginTop:3}}>{v}</div></div>
             ))}
           </div>
-          {analysis.zone_chalandise.concurrents_proches?.map((c,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.grey200,marginBottom:5}}><span style={{color:C.red}}>▸</span>{c}</div>)}
+          {analysis.zone_chalandise.concurrents_proches?.map((c,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.textSecondary,marginBottom:5}}><span style={{color:C.red}}>▸</span>{c}</div>)}
         </Card>
       )}
       {isLog&&analysis.accessibilite_logistique&&(
         <Card title="Accessibilité Logistique" icon="🛣️">
           {[["Autoroute",analysis.accessibilite_logistique.autoroute_plus_proche],["Port/Aéroport",analysis.accessibilite_logistique.port_aeroport]].filter(([,v])=>v&&v!=="N/D").map(([l,v])=>(
-            <div key={l} style={{display:"flex",justifyContent:"space-between",marginBottom:8}}><span style={{fontSize:13,color:C.grey400}}>{l}</span><span style={{fontSize:13,color:C.white}}>{v}</span></div>
+            <div key={l} style={{display:"flex",justifyContent:"space-between",marginBottom:8}}><span style={{fontSize:13,color:C.textMuted}}>{l}</span><span style={{fontSize:13,color:C.textPrimary}}>{v}</span></div>
           ))}
-          {analysis.accessibilite_logistique.axes_details?.map((a,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.grey200,marginBottom:5}}><span style={{color:C.green}}>▸</span>{a}</div>)}
+          {analysis.accessibilite_logistique.axes_details?.map((a,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.textSecondary,marginBottom:5}}><span style={{color:C.green}}>▸</span>{a}</div>)}
         </Card>
       )}
-      {analysis.concurrence?.length>0&&<Card title="Concurrence" icon="⚔️">{analysis.concurrence.map((c,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.grey200,marginBottom:5}}><span style={{color:C.amber}}>▸</span>{c}</div>)}</Card>}
-      {analysis.points_specifiques?.length>0&&<Card title="Points Spécifiques" icon="🎯">{analysis.points_specifiques.map((p,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.grey200,marginBottom:5}}><span style={{color:C.blue}}>▸</span>{p}</div>)}</Card>}
+      {analysis.concurrence?.length>0&&<Card title="Concurrence" icon="⚔️">{analysis.concurrence.map((c,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.textSecondary,marginBottom:5}}><span style={{color:C.amber}}>▸</span>{c}</div>)}</Card>}
+      {analysis.points_specifiques?.length>0&&<Card title="Points Spécifiques" icon="🎯">{analysis.points_specifiques.map((p,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.textSecondary,marginBottom:5}}><span style={{color:C.blue}}>▸</span>{p}</div>)}</Card>}
     </div>
   );
 }
@@ -403,18 +414,18 @@ function AssetClassPanel({ classeActif, analysis }) {
 // ─── UI primitives ────────────────────────────────────────────────────────────
 function Card({ title, icon, children }) {
   return (
-    <div style={{borderRadius:14,border:`1px solid ${C.navyLight}`,background:C.navyMid,padding:"18px 20px"}}>
-      <div style={{fontSize:11,fontWeight:700,letterSpacing:".07em",color:C.grey400,marginBottom:14,display:"flex",alignItems:"center",gap:6}}><span>{icon}</span>{title.toUpperCase()}</div>
+    <div style={{borderRadius:14,border:`1px solid ${C.cardBorder}`,background:C.cardBg,padding:"18px 20px",boxShadow:"0 1px 4px rgba(11,20,55,.07)"}}>
+      <div style={{fontSize:11,fontWeight:700,letterSpacing:".07em",color:C.textSecondary,marginBottom:14,display:"flex",alignItems:"center",gap:6}}><span>{icon}</span>{title.toUpperCase()}</div>
       {children}
     </div>
   );
 }
-function KPI({ label, value, color=C.white, sub }) {
+function KPI({ label, value, color=C.textPrimary, sub }) {
   return (
-    <div style={{borderRadius:12,border:`1px solid ${C.navyLight}`,background:C.navyMid,padding:"14px 16px",textAlign:"center"}}>
-      <div style={{fontSize:11,color:C.grey400,marginBottom:6}}>{label}</div>
+    <div style={{borderRadius:12,border:`1px solid ${C.cardBorder}`,background:C.cardBg,padding:"14px 16px",textAlign:"center",boxShadow:"0 1px 4px rgba(11,20,55,.06)"}}>
+      <div style={{fontSize:11,color:C.textMuted,marginBottom:6}}>{label}</div>
       <div style={{fontSize:16,fontWeight:700,color}}>{value||"N/D"}</div>
-      {sub&&<div style={{fontSize:11,color:C.grey600,marginTop:3}}>{sub}</div>}
+      {sub&&<div style={{fontSize:11,color:C.textMuted,marginTop:3}}>{sub}</div>}
     </div>
   );
 }
@@ -422,10 +433,10 @@ function SwotGrid({ swot }) {
   return (
     <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
       {[{k:"forces",l:"Forces",icon:"💪",b:C.green},{k:"faiblesses",l:"Faiblesses",icon:"⚠️",b:C.red},{k:"opportunites",l:"Opportunités",icon:"🚀",b:C.blue},{k:"menaces",l:"Menaces",icon:"⛈️",b:C.amber}].map(({k,l,icon,b})=>(
-        <div key={k} style={{borderRadius:14,border:`1px solid ${b}30`,background:`${b}08`,padding:16}}>
+        <div key={k} style={{borderRadius:14,border:`1px solid ${b}25`,background:C.cardBg,padding:16,boxShadow:"0 1px 4px rgba(11,20,55,.05)"}}>
           <div style={{fontSize:13,fontWeight:700,color:b,marginBottom:12}}>{icon} {l}</div>
           <ul style={{margin:0,padding:0,listStyle:"none",display:"flex",flexDirection:"column",gap:8}}>
-            {(swot?.[k]||[]).map((s,i)=><li key={i} style={{fontSize:13,color:"#CBD5E1",display:"flex",gap:8}}><span style={{color:"#475569",flexShrink:0}}>—</span>{s}</li>)}
+            {(swot?.[k]||[]).map((s,i)=><li key={i} style={{fontSize:13,color:C.textSecondary,display:"flex",gap:8}}><span style={{color:C.textMuted,flexShrink:0}}>—</span>{s}</li>)}
           </ul>
         </div>
       ))}
@@ -592,43 +603,43 @@ function ResultSheet({ im, enriched, onReset }) {
         </div>
       </div>
 
-      {/* ── Tab content ── */}
-      <div style={{flex:1,background:C.navy}}>
+      {/* ── Tab content (light theme) ── */}
+      <div style={{flex:1,background:C.pageBg}}>
         <div style={{maxWidth:1400,margin:"0 auto",padding:"28px 40px"}}>
 
           {tab==="overview"&&(
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:16}}>
               <Card title="Structure Financière" icon="💰">
                 {[["Prix demandé",im.financier?.prix_demande],["Rdt vendeur",im.financier?.rendement_vendeur],["Rdt brut calculé",im.financier?.rendement_brut_calcule],["Valeur /m²",im.financier?.valeur_m2],["VLM (IM)",im.financier?.valeur_locative_theorique],["Loyer total/an",im.etat_locatif?.loyer_total_annuel]].map(([l,v])=>(
-                  <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:`1px solid ${C.navyLight}`}}>
-                    <span style={{fontSize:13,color:C.grey400}}>{l}</span><span style={{fontSize:13,fontWeight:600,color:C.amber}}>{v||"N/D"}</span>
+                  <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:`1px solid ${C.cardBorder}`}}>
+                    <span style={{fontSize:13,color:C.textMuted}}>{l}</span><span style={{fontSize:13,fontWeight:600,color:C.amber}}>{v||"N/D"}</span>
                   </div>
                 ))}
               </Card>
               <Card title="Durées d'Engagement" icon="📅">
                 {[["WALB",im.durees_engagement?.walb,"#93C5FD"],["WALT",im.durees_engagement?.walt,C.white],["Bail le + long",im.durees_engagement?.bail_plus_long,C.green],["Bail le + court",im.durees_engagement?.bail_plus_court,C.amber]].map(([l,v,c])=>(
-                  <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:`1px solid ${C.navyLight}`}}>
-                    <span style={{fontSize:13,color:C.grey400}}>{l}</span><span style={{fontSize:13,fontWeight:600,color:c}}>{v||"N/D"}</span>
+                  <div key={l} style={{display:"flex",justifyContent:"space-between",padding:"8px 0",borderBottom:`1px solid ${C.cardBorder}`}}>
+                    <span style={{fontSize:13,color:C.textMuted}}>{l}</span><span style={{fontSize:13,fontWeight:600,color:c}}>{v||"N/D"}</span>
                   </div>
                 ))}
               </Card>
               <Card title="Contexte de Marché" icon="🌍">
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
-                  <span style={{fontSize:13,color:C.grey400}}>Dynamisme</span>
-                  <span style={{padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:600,background:`${C.sky}20`,color:C.sky}}>{enriched.contexte_marche?.dynamisme||"N/D"}</span>
+                  <span style={{fontSize:13,color:C.textMuted}}>Dynamisme</span>
+                  <span style={{padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:600,background:`${C.sky}20`,color:C.skyMid}}>{enriched.contexte_marche?.dynamisme||"N/D"}</span>
                 </div>
-                <p style={{fontSize:12,color:C.grey400,lineHeight:1.6,margin:0}}>{enriched.contexte_marche?.tendance_investisseurs}</p>
+                <p style={{fontSize:12,color:C.textSecondary,lineHeight:1.6,margin:0}}>{enriched.contexte_marche?.tendance_investisseurs}</p>
               </Card>
               {enriched.verdict_independant?.resume&&(
-                <div style={{gridColumn:"1/-1",padding:"16px 20px",borderRadius:14,background:C.navyMid,border:`1px solid ${C.navyLight}`}}>
-                  <div style={{fontSize:11,fontWeight:700,color:C.grey400,letterSpacing:".07em",marginBottom:8}}>💬 SYNTHÈSE ANALYSTE</div>
-                  <p style={{fontSize:13,color:"#94A3B8",lineHeight:1.7,margin:0,fontStyle:"italic"}}>"{enriched.verdict_independant.resume}"</p>
+                <div style={{gridColumn:"1/-1",padding:"16px 20px",borderRadius:14,background:C.cardBg,border:`1px solid ${C.cardBorder}`,boxShadow:"0 1px 4px rgba(11,20,55,.05)"}}>
+                  <div style={{fontSize:11,fontWeight:700,color:C.textSecondary,letterSpacing:".07em",marginBottom:8}}>💬 SYNTHÈSE ANALYSTE</div>
+                  <p style={{fontSize:13,color:C.textSecondary,lineHeight:1.7,margin:0,fontStyle:"italic"}}>"{enriched.verdict_independant.resume}"</p>
                 </div>
               )}
               {enriched.verdict_independant?.points_divergence?.length>0&&(
-                <div style={{gridColumn:"1/-1",padding:"14px 18px",borderRadius:14,background:`${C.red}08`,border:`1px solid ${C.red}25`}}>
+                <div style={{gridColumn:"1/-1",padding:"14px 18px",borderRadius:14,background:"#FFF5F5",border:`1px solid ${C.red}20`}}>
                   <div style={{fontSize:11,fontWeight:700,color:C.red,marginBottom:10}}>⚠️ ÉCARTS IM vs RÉALITÉ</div>
-                  {enriched.verdict_independant.points_divergence.map((p,i)=><p key={i} style={{fontSize:13,color:"#94A3B8",marginTop:4}}>▸ {p}</p>)}
+                  {enriched.verdict_independant.points_divergence.map((p,i)=><p key={i} style={{fontSize:13,color:C.textSecondary,marginTop:4,marginBottom:0}}>▸ {p}</p>)}
                 </div>
               )}
             </div>
@@ -641,7 +652,7 @@ function ResultSheet({ im, enriched, onReset }) {
               <div style={{display:"flex",flexDirection:"column",gap:14}}>
                 <MapComponent adresse={im.localisation?.adresse} ville={im.localisation?.ville} pays={im.localisation?.pays} classeActif={im.classe_actif}/>
                 <Card title="Analyse Localisation (IM)" icon="📍">
-                  <p style={{fontSize:13,color:C.grey200,lineHeight:1.7,margin:0}}>{im.localisation?.analyse_im||"N/D"}</p>
+                  <p style={{fontSize:13,color:C.textSecondary,lineHeight:1.7,margin:0}}>{im.localisation?.analyse_im||"N/D"}</p>
                 </Card>
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:14}}>
@@ -655,13 +666,13 @@ function ResultSheet({ im, enriched, onReset }) {
                   ].map(({icon,label,lines})=>
                     lines?.length>0 && lines[0]!=="N/D" ? (
                       <div key={label} style={{marginBottom:12}}>
-                        <div style={{fontSize:11,color:C.grey600,marginBottom:5,letterSpacing:".04em"}}>{icon} {label.toUpperCase()}</div>
-                        {lines.map((l,i)=><div key={i} style={{fontSize:13,color:C.grey200,marginBottom:3}}>▸ {l}</div>)}
+                        <div style={{fontSize:11,color:C.textMuted,marginBottom:5,letterSpacing:".04em"}}>{icon} {label.toUpperCase()}</div>
+                        {lines.map((l,i)=><div key={i} style={{fontSize:13,color:C.textSecondary,marginBottom:3}}>▸ {l}</div>)}
                       </div>
                     ) : null
                   )}
                   {im.transports?.gare&&im.transports.gare!=="N/D"&&(
-                    <div><div style={{fontSize:11,color:C.grey600,marginBottom:5}}>🚉 GARE</div><div style={{fontSize:13,color:C.grey200}}>▸ {im.transports.gare}</div></div>
+                    <div><div style={{fontSize:11,color:C.textMuted,marginBottom:5}}>🚉 GARE</div><div style={{fontSize:13,color:C.textSecondary}}>▸ {im.transports.gare}</div></div>
                   )}
                 </Card>
                 <AssetClassPanel classeActif={im.classe_actif} analysis={enriched.analyse_classe_actif}/>
@@ -673,9 +684,9 @@ function ResultSheet({ im, enriched, onReset }) {
             <div style={{display:"flex",flexDirection:"column",gap:16}}>
               <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:12}}>
                 <KPI label="Taux occupation" value={im.etat_locatif?.taux_occupation} color={C.green}/>
-                <KPI label="Surface totale"  value={im.etat_locatif?.surface_totale}  color={C.white}/>
+                <KPI label="Surface totale"  value={im.etat_locatif?.surface_totale}  color={C.textPrimary}/>
                 <KPI label="Loyer total/an"  value={im.etat_locatif?.loyer_total_annuel} color={C.amber}/>
-                <KPI label="Nb locataires"   value={im.etat_locatif?.locataires?.length?.toString()} color={C.white}/>
+                <KPI label="Nb locataires"   value={im.etat_locatif?.locataires?.length?.toString()} color={C.textPrimary}/>
               </div>
               <Card title="Tableau des Baux" icon="📋">
                 <LeaseTable locataires={im.etat_locatif?.locataires}/>
@@ -685,7 +696,7 @@ function ResultSheet({ im, enriched, onReset }) {
 
           {tab==="locataires"&&(
             <div>
-              <div style={{padding:"10px 14px",borderRadius:10,background:`${C.amber}10`,border:`1px solid ${C.amber}20`,fontSize:12,color:"#FCD34D",marginBottom:16}}>
+              <div style={{padding:"10px 14px",borderRadius:10,background:"#FFFBEB",border:`1px solid ${C.amber}30`,fontSize:12,color:"#92400E",marginBottom:16}}>
                 ℹ️ Données croisées avec sources web publiques. Cliquez les liens pour vérifier.
               </div>
               {im.etat_locatif?.locataires?.map((loc,i)=><TenantCard key={i} loc={loc} enrichedData={enriched.locataires_analyse}/>)}
@@ -696,20 +707,20 @@ function ResultSheet({ im, enriched, onReset }) {
             <div style={{display:"grid",gridTemplateColumns:"2fr 1fr",gap:18}}>
               <div style={{display:"flex",flexDirection:"column",gap:14}}>
                 <div style={{display:"grid",gridTemplateColumns:"1fr 1fr 1fr",gap:10}}>
-                  <KPI label="Loyer IM"         value={im.marche_locatif_im?.loyer_marche_cite}         color={C.grey200} sub="Source : IM"/>
-                  <KPI label="Loyer réel (web)" value={enriched.marche_locatif_reel?.fourchette_loyers} color={C.white}   sub="Source : Web"/>
+                  <KPI label="Loyer IM"         value={im.marche_locatif_im?.loyer_marche_cite}         color={C.textSecondary} sub="Source : IM"/>
+                  <KPI label="Loyer réel (web)" value={enriched.marche_locatif_reel?.fourchette_loyers} color={C.textPrimary}   sub="Source : Web"/>
                   <KPI label="Tendance"         value={enriched.marche_locatif_reel?.tendance}          color={enriched.marche_locatif_reel?.tendance==="hausse"?C.green:enriched.marche_locatif_reel?.tendance==="baisse"?C.red:C.amber}/>
                 </div>
                 <Card title="Analyse Marché" icon="🔍">
-                  <p style={{fontSize:13,color:C.grey200,lineHeight:1.7,marginBottom:16}}>{enriched.marche_locatif_reel?.analyse}</p>
+                  <p style={{fontSize:13,color:C.textSecondary,lineHeight:1.7,marginBottom:16}}>{enriched.marche_locatif_reel?.analyse}</p>
                   {enriched.marche_locatif_reel?.offres_trouvees?.length>0&&(
-                    <><div style={{fontSize:11,color:C.grey600,marginBottom:10,letterSpacing:".05em"}}>OFFRES OBSERVÉES</div>
+                    <><div style={{fontSize:11,color:C.textMuted,marginBottom:10,letterSpacing:".05em"}}>OFFRES OBSERVÉES</div>
                     {enriched.marche_locatif_reel.offres_trouvees.map((o,i)=>(
-                      <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",borderRadius:10,background:C.navy,gap:12,marginBottom:6}}>
-                        <span style={{fontSize:13,color:C.grey200}}>▸ {o.description||o}</span>
+                      <div key={i} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"10px 14px",borderRadius:10,background:C.cardBg2,border:`1px solid ${C.cardBorder}`,gap:12,marginBottom:6}}>
+                        <span style={{fontSize:13,color:C.textSecondary}}>▸ {o.description||o}</span>
                         <div style={{display:"flex",alignItems:"center",gap:10,flexShrink:0}}>
                           {o.loyer&&<span style={{fontSize:13,fontWeight:700,color:C.amber}}>{o.loyer}</span>}
-                          {o.source_url&&o.source_url!=="https://..."&&<a href={o.source_url} target="_blank" rel="noopener noreferrer" style={{fontSize:11,color:C.red,textDecoration:"none",border:`1px solid ${C.redLight}`,padding:"3px 8px",borderRadius:6}}>🔗 Source</a>}
+                          {o.source_url&&o.source_url!=="https://..."&&<a href={o.source_url} target="_blank" rel="noopener noreferrer" style={{fontSize:11,color:C.red,textDecoration:"none",border:`1px solid ${C.red}30`,padding:"3px 8px",borderRadius:6,background:"#FFF5F5"}}>🔗 Source</a>}
                         </div>
                       </div>
                     ))}</>
@@ -718,10 +729,10 @@ function ResultSheet({ im, enriched, onReset }) {
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:14}}>
                 <Card title="Risques Macro" icon="📉">
-                  {(enriched.contexte_marche?.risques_macro||[]).map((r,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.grey200,marginBottom:8}}><span style={{color:C.red}}>▸</span>{r}</div>)}
+                  {(enriched.contexte_marche?.risques_macro||[]).map((r,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.textSecondary,marginBottom:8}}><span style={{color:C.red}}>▸</span>{r}</div>)}
                 </Card>
                 <Card title="Opportunités Macro" icon="📈">
-                  {(enriched.contexte_marche?.opportunites_macro||[]).map((o,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.grey200,marginBottom:8}}><span style={{color:C.green}}>▸</span>{o}</div>)}
+                  {(enriched.contexte_marche?.opportunites_macro||[]).map((o,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.textSecondary,marginBottom:8}}><span style={{color:C.green}}>▸</span>{o}</div>)}
                 </Card>
               </div>
             </div>
@@ -730,19 +741,19 @@ function ResultSheet({ im, enriched, onReset }) {
           {tab==="projets"&&(
             <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
               {(!enriched.projets_zone||enriched.projets_zone.length===0)?(
-                <div style={{gridColumn:"1/-1",textAlign:"center",color:C.grey400,padding:"48px 0"}}>Aucun projet identifié dans la zone</div>
+                <div style={{gridColumn:"1/-1",textAlign:"center",color:C.textMuted,padding:"48px 0"}}>Aucun projet identifié dans la zone</div>
               ):enriched.projets_zone.map((p,i)=>(
-                <div key={i} style={{borderRadius:14,border:`1px solid ${C.navyLight}`,background:C.navyMid,padding:16,display:"flex",gap:14}}>
-                  <div style={{width:42,height:42,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,background:p.impact==="positif"?`${C.green}20`:p.impact==="négatif"?`${C.red}20`:`${C.grey600}20`,flexShrink:0}}>
+                <div key={i} style={{borderRadius:14,border:`1px solid ${C.cardBorder}`,background:C.cardBg,padding:16,display:"flex",gap:14,boxShadow:"0 1px 4px rgba(11,20,55,.05)"}}>
+                  <div style={{width:42,height:42,borderRadius:12,display:"flex",alignItems:"center",justifyContent:"center",fontSize:20,background:p.impact==="positif"?`${C.green}15`:p.impact==="négatif"?`${C.red}15`:`${C.grey600}15`,flexShrink:0}}>
                     {p.type==="bureau"?"🏢":p.type==="hotel"?"🏨":p.type==="logement"?"🏠":p.type==="transport"?"🚇":"🏗️"}
                   </div>
                   <div style={{flex:1}}>
                     <div style={{display:"flex",alignItems:"center",gap:8,flexWrap:"wrap",marginBottom:6}}>
-                      <span style={{fontSize:14,fontWeight:700,color:C.white}}>{p.nom}</span>
-                      <span style={{padding:"2px 8px",borderRadius:6,fontSize:11,fontWeight:600,background:p.impact==="positif"?`${C.green}20`:p.impact==="négatif"?`${C.red}20`:`${C.grey600}20`,color:p.impact==="positif"?C.green:p.impact==="négatif"?C.red:C.grey400}}>{p.impact}</span>
-                      <span style={{padding:"2px 8px",borderRadius:6,fontSize:11,background:`${C.blue}15`,color:"#93C5FD"}}>{p.statut}</span>
+                      <span style={{fontSize:14,fontWeight:700,color:C.textPrimary}}>{p.nom}</span>
+                      <span style={{padding:"2px 8px",borderRadius:6,fontSize:11,fontWeight:600,background:p.impact==="positif"?`${C.green}15`:p.impact==="négatif"?`${C.red}15`:`${C.grey600}15`,color:p.impact==="positif"?C.green:p.impact==="négatif"?C.red:C.textMuted}}>{p.impact}</span>
+                      <span style={{padding:"2px 8px",borderRadius:6,fontSize:11,background:`${C.blue}10`,color:C.blue}}>{p.statut}</span>
                     </div>
-                    <p style={{fontSize:13,color:C.grey400,margin:0}}>{p.description}</p>
+                    <p style={{fontSize:13,color:C.textSecondary,margin:0}}>{p.description}</p>
                     {p.source_url&&p.source_url!=="https://..."&&<a href={p.source_url} target="_blank" rel="noopener noreferrer" style={{display:"inline-flex",alignItems:"center",gap:4,marginTop:8,fontSize:11,color:C.red,textDecoration:"none"}}>🔗 Source</a>}
                   </div>
                 </div>
@@ -754,9 +765,9 @@ function ResultSheet({ im, enriched, onReset }) {
             <div style={{display:"flex",flexDirection:"column",gap:14}}>
               <SwotGrid swot={enriched.swot}/>
               {enriched.verdict_independant?.points_divergence?.length>0&&(
-                <div style={{borderRadius:14,border:`1px solid ${C.red}25`,background:`${C.red}08`,padding:20}}>
+                <div style={{borderRadius:14,border:`1px solid ${C.red}20`,background:"#FFF5F5",padding:20}}>
                   <div style={{fontSize:11,fontWeight:700,letterSpacing:".07em",color:C.red,marginBottom:12}}>⚠️ POINTS DE VIGILANCE CRITIQUES</div>
-                  {enriched.verdict_independant.points_divergence.map((p,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:"#CBD5E1",marginBottom:8}}><span style={{color:C.red}}>▸</span>{p}</div>)}
+                  {enriched.verdict_independant.points_divergence.map((p,i)=><div key={i} style={{display:"flex",gap:8,fontSize:13,color:C.textSecondary,marginBottom:8}}><span style={{color:C.red}}>▸</span>{p}</div>)}
                 </div>
               )}
             </div>
@@ -818,8 +829,8 @@ export default function Home() {
           @keyframes spin{to{transform:rotate(360deg)}}
           @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
           ::-webkit-scrollbar{width:5px;height:5px}
-          ::-webkit-scrollbar-track{background:${C.navy}}
-          ::-webkit-scrollbar-thumb{background:${C.navyLight};border-radius:3px}
+          ::-webkit-scrollbar-track{background:${C.pageBg}}
+          ::-webkit-scrollbar-thumb{background:${C.cardBorder};border-radius:3px}
           .leaflet-container{font-family:-apple-system,BlinkMacSystemFont,sans-serif}
         `}</style>
       </Head>
