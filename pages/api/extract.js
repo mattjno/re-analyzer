@@ -1,9 +1,5 @@
 export const config = {
-  api: {
-    bodyParser: {
-      sizeLimit: '1mb',
-    },
-  },
+  api: { bodyParser: { sizeLimit: '1mb' } },
 }
 
 export default async function handler(req, res) {
@@ -11,10 +7,8 @@ export default async function handler(req, res) {
 
   const { blobUrl, filename } = req.body
   const apiKey = process.env.ANTHROPIC_API_KEY
-
   if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY non configurée' })
 
-  // On télécharge le PDF depuis Vercel Blob
   const pdfResponse = await fetch(blobUrl)
   const pdfBuffer = await pdfResponse.arrayBuffer()
   const base64Data = Buffer.from(pdfBuffer).toString('base64')
@@ -24,54 +18,66 @@ export default async function handler(req, res) {
 Structure requise:
 {
   "titre": "nom de l'actif",
-  "classe_actif": "bureau / commerce / logistique / résidentiel / mixte / autre",
+  "classe_actif": "bureau / commerce / logistique / résidentiel / mixte / hôtel / industriel",
   "localisation": {
-    "adresse": "adresse complète",
+    "adresse": "adresse complète la plus précise possible",
     "ville": "ville",
     "pays": "pays",
     "code_postal": "code postal si disponible",
-    "analyse_im": "analyse de la localisation selon l'IM"
+    "analyse_im": "analyse de la localisation selon l'IM en 2-3 phrases"
   },
   "transports": {
-    "metro": ["lignes"],
-    "rer": ["lignes"],
-    "bus": ["lignes"],
-    "gare": "gare proche",
+    "metro": ["ex: Ligne 1 - Châtelet (200m)"],
+    "rer": ["ex: RER A - Châtelet (200m)"],
+    "tram": ["ex: T3a - Porte de Vincennes (100m)"],
+    "bus": ["ex: Bus 29, 76"],
+    "gare": "ex: Gare de Lyon (1,2km)",
     "analyse_im": "analyse transports selon l'IM"
   },
   "etat_locatif": {
     "taux_occupation": "XX%",
     "surface_totale": "XXX m²",
-    "loyer_total_annuel": "XXX €",
+    "loyer_total_annuel": "XXX €/an",
     "locataires": [
       {
-        "nom": "nom",
-        "secteur": "secteur",
-        "surface": "m²",
-        "loyer_annuel": "€",
-        "loyer_m2": "€/m²/an",
-        "echeance_bail": "date",
-        "type_bail": "3-6-9 / ferme / autre",
-        "fiabilite_im": "forte / moyenne / faible",
-        "note_im": "justification selon l'IM"
+        "nom": "Nom du locataire",
+        "secteur": "secteur d'activité précis",
+        "surface": "XXX m²",
+        "loyer_annuel": "XXX €/an",
+        "loyer_m2": "XXX €/m²/an",
+        "date_debut_bail": "MM/YYYY",
+        "date_break": "MM/YYYY",
+        "date_fin_bail": "MM/YYYY",
+        "walb": "X,X ans",
+        "walt": "X,X ans",
+        "type_bail": "triple net / double net / simple net / brut",
+        "note_im": "description selon l'IM"
       }
     ]
   },
   "durees_engagement": {
-    "wal": "X,X ans",
-    "bail_plus_long": "X ans - locataire",
-    "bail_plus_court": "X ans - locataire"
+    "walb": "X,X ans",
+    "walt": "X,X ans",
+    "bail_plus_long": "X ans - Locataire",
+    "bail_plus_court": "X ans - Locataire"
   },
   "financier": {
     "prix_demande": "XXX €",
     "rendement_vendeur": "X,XX%",
     "rendement_brut_calcule": "X,XX%",
     "valeur_m2": "XXX €/m²",
-    "valeur_locative_theorique": "XXX €/m²/an selon l'IM"
+    "valeur_locative_theorique": "XXX €/m²/an"
   },
   "marche_locatif_im": {
     "loyer_marche_cite": "XXX €/m²/an",
     "comparables_cites": ["comparable 1"]
+  },
+  "classe_actif_details": {
+    "type_specifique": "description précise",
+    "annee_construction": "XXXX",
+    "derniere_renovation": "XXXX",
+    "certification": "HQE / BREEAM / LEED / EPC A / Aucune",
+    "caracteristiques_cles": ["caractéristique 1", "caractéristique 2"]
   }
 }
 Si une donnée manque: "N/D".`
@@ -86,13 +92,13 @@ Si une donnée manque: "N/D".`
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
-        max_tokens: 3000,
+        max_tokens: 4000,
         system,
         messages: [{
           role: 'user',
           content: [
             { type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: base64Data }, title: filename },
-            { type: 'text', text: 'Extrais les données de ce mémorandum.' }
+            { type: 'text', text: 'Extrais toutes les données de ce mémorandum. Sois très précis sur les dates de bail (break, fin), les surfaces et loyers par locataire.' }
           ]
         }]
       })
@@ -106,10 +112,7 @@ Si une donnée manque: "N/D".`
     const data = await response.json()
     const raw = data.content.map(b => b.text || '').join('').replace(/```json|```/g, '').trim()
     const parsed = JSON.parse(raw)
-
-    // Supprimer le blob après usage
     await fetch(blobUrl, { method: 'DELETE' }).catch(() => {})
-
     res.status(200).json(parsed)
   } catch (e) {
     res.status(500).json({ error: e.message })
