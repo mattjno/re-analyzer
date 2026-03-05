@@ -181,12 +181,32 @@ Réponds UNIQUEMENT en JSON valide (sans backticks markdown):
 
     if (!response.ok) {
       const err = await response.text()
-      return res.status(response.status).json({ error: err })
+      return res.status(response.status).json({ error: `Anthropic API error ${response.status}: ${err.slice(0, 300)}` })
     }
 
     const data = await response.json()
-    const raw = data.content.map(b => b.text || '').join('').replace(/```json|```/g, '').trim()
-    const parsed = JSON.parse(raw)
+
+    // Collect only text blocks (skip tool_use / tool_result blocks)
+    const raw = data.content
+      .filter(b => b.type === 'text')
+      .map(b => b.text || '')
+      .join('')
+
+    // Extract JSON robustly — find first { ... } block
+    const jsonMatch = raw.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      return res.status(500).json({ error: 'Pas de JSON trouvé dans la réponse. Réponse brute: ' + raw.slice(0, 500) })
+    }
+
+    let parsed
+    try {
+      parsed = JSON.parse(jsonMatch[0])
+    } catch (parseErr) {
+      // Try stripping markdown fences and retry
+      const cleaned = jsonMatch[0].replace(/```json|```/g, '').trim()
+      parsed = JSON.parse(cleaned)
+    }
+
     res.status(200).json(parsed)
   } catch (e) {
     res.status(500).json({ error: e.message })

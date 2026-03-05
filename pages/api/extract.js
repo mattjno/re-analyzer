@@ -110,8 +110,10 @@ Si une donnée manque: "N/D".`
     }
 
     const data = await response.json()
-    const raw = data.content.map(b => b.text || '').join('').replace(/```json|```/g, '').trim()
-    const parsed = JSON.parse(raw)
+    const raw = data.content.filter(b => b.type === 'text').map(b => b.text || '').join('')
+    const jsonMatch = raw.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) return res.status(500).json({ error: 'Pas de JSON dans la réponse extraction' })
+    const parsed = JSON.parse(jsonMatch[0])
     await fetch(blobUrl, { method: 'DELETE' }).catch(() => {})
     res.status(200).json(parsed)
   } catch (e) {
