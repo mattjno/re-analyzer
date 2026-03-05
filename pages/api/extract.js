@@ -1,19 +1,23 @@
 export const config = {
   api: {
     bodyParser: {
-      sizeLimit: '20mb',
+      sizeLimit: '1mb',
     },
-    responseLimit: false,
   },
 }
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end()
 
-  const { base64Data, filename } = req.body
+  const { blobUrl, filename } = req.body
   const apiKey = process.env.ANTHROPIC_API_KEY
 
   if (!apiKey) return res.status(500).json({ error: 'ANTHROPIC_API_KEY non configurée' })
+
+  // On télécharge le PDF depuis Vercel Blob
+  const pdfResponse = await fetch(blobUrl)
+  const pdfBuffer = await pdfResponse.arrayBuffer()
+  const base64Data = Buffer.from(pdfBuffer).toString('base64')
 
   const system = `Tu es un analyste senior en investissement immobilier. Analyse cet Investment Memorandum et retourne UNIQUEMENT un JSON valide (sans backticks ni markdown).
 
@@ -102,6 +106,10 @@ Si une donnée manque: "N/D".`
     const data = await response.json()
     const raw = data.content.map(b => b.text || '').join('').replace(/```json|```/g, '').trim()
     const parsed = JSON.parse(raw)
+
+    // Supprimer le blob après usage
+    await fetch(blobUrl, { method: 'DELETE' }).catch(() => {})
+
     res.status(200).json(parsed)
   } catch (e) {
     res.status(500).json({ error: e.message })
