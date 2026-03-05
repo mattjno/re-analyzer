@@ -406,8 +406,8 @@ export default function Home() {
     setError("");
     try {
       setStep(1);
-      const b64 = await fileToBase64(file);
-      const im = await extractFromIM(b64, file.name);
+      const blobUrl = await uploadToBlob(file);
+      const im = await extractFromIM(blobUrl, file.name);
       setImData(im);
       setStep(2);
       const en = await enrichWithWebSearch(im);
